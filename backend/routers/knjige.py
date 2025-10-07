@@ -1,36 +1,64 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from crud.library import napravi_autora, svi_autori, napravi_knjigu, sve_knjige
-from schemas.library import AutorCreate, Autor, KnjigaCreate, Knjiga
-from databases.database import SessionLocal
+from typing import List
 
-router = APIRouter()
+from models.models import Knjiga as KnjigaModel
+from schemas.schemas import KnjigaRead, KnjigaCreate
+from databases.database import get_db
 
-# Dependency za DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-# AUTORI
-@router.post("/autori/", response_model=Autor)
-def dodaj_autora(autor: AutorCreate, db: Session = Depends(get_db)):
-    return napravi_autora(db, autor)
+# router = APIRouter(prefix="/knjige", tags=["Knjige"])
+router = APIRouter(tags=["Knjige"])
 
 
-@router.get("/autori/", response_model=list[Autor])
-def svi_autori_endpoint(db: Session = Depends(get_db)):
-    return svi_autori(db)
+# 🟢 1. Dohvati sve knjige
+@router.get("/", response_model=List[KnjigaRead])
+def get_knjige(db: Session = Depends(get_db)):
+    knjige = db.query(KnjigaModel).all()
+    return knjige
 
 
-# KNJIGE
-@router.post("/knjige/", response_model=Knjiga)
-def dodaj_knjigu(knjiga: KnjigaCreate, db: Session = Depends(get_db)):
-    return napravi_knjigu(db, knjiga)
+# 🟢 2. Dohvati jednu knjigu po ID-u
+@router.get("/{knjiga_id}", response_model=KnjigaRead)
+def get_knjiga(knjiga_id: int, db: Session = Depends(get_db)):
+    knjiga = db.query(KnjigaModel).filter(KnjigaModel.id == knjiga_id).first()
+    if not knjiga:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Knjiga nije pronađena")
+    return knjiga
 
 
-@router.get("/knjige/", response_model=Knjiga)
-def sve_knjige(db: Session = Depends(get_db)):
-    return sve_knjige(db)
+# 🟢 3. Dodaj novu knjigu
+@router.post("/", response_model=KnjigaRead, status_code=status.HTTP_201_CREATED)
+def create_knjiga(knjiga: KnjigaCreate, db: Session = Depends(get_db)):
+    print("Payload iz frontenda:", knjiga) 
+    nova_knjiga = KnjigaModel(**knjiga.model_dump())
+    db.add(nova_knjiga)
+    db.commit()
+    db.refresh(nova_knjiga)
+    return nova_knjiga
+
+
+# 🟢 4. Ažuriraj postojeću knjigu
+@router.put("/{knjiga_id}", response_model=KnjigaRead)
+def update_knjiga(knjiga_id: int, knjiga_data: KnjigaCreate, db: Session = Depends(get_db)):
+    knjiga = db.query(KnjigaModel).filter(KnjigaModel.id == knjiga_id).first()
+    if not knjiga:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Knjiga nije pronađena")
+
+    for key, value in knjiga_data.model_dump().items():
+        setattr(knjiga, key, value)
+
+    db.commit()
+    db.refresh(knjiga)
+    return knjiga
+
+
+# 🟢 5. Obriši knjigu
+@router.delete("/{knjiga_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_knjiga(knjiga_id: int, db: Session = Depends(get_db)):
+    knjiga = db.query(KnjigaModel).filter(KnjigaModel.id == knjiga_id).first()
+    if not knjiga:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Knjiga nije pronađena")
+
+    db.delete(knjiga)
+    db.commit()
+    return None

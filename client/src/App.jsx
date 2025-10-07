@@ -1,4 +1,6 @@
 
+import BookTable from "./book/BookComponent";
+import "./styles/App.scss";
 
 import { useEffect, useState } from "react";
 
@@ -13,10 +15,14 @@ function App() {
   }, []);
 
   return (
-    <div style={{ padding: "50px", fontFamily: "Arial" }}>
-      <h1>Poruka iz backend-a:</h1>
-      <p>{message}</p>
-    </div>
+
+      <>
+
+   <div>
+     <BookTable/>
+
+       </div>
+      </>
   );
 }
 

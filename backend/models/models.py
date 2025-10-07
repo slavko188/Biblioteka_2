@@ -1,25 +1,42 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
-from sqlalchemy.orm import relationship
-from databases.database import Base  # <-- import iz databases foldera
+from __future__ import annotations
+from typing import List, Optional
+from sqlalchemy import String, Integer, Boolean, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from databases.database import Base
+
 
 class Autor(Base):
     __tablename__ = "autori"
 
-    id = Column(Integer, primary_key=True, index=True)
-    ime = Column(String, index=True)
-    prezime = Column(String, index=True)
+    # --- Kolone ---
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    ime: Mapped[str] = mapped_column(String(50), index=True, nullable=False)
+    prezime: Mapped[str] = mapped_column(String(50), index=True, nullable=False)
 
-    knjige = relationship("Knjiga", back_populates="autor")
+    # --- Relacije ---
+    knjige: Mapped[List[Knjiga]] = relationship(
+        back_populates="autor",
+        cascade="all, delete-orphan",
+        lazy="joined"
+    )
+
+    def __repr__(self) -> str:
+        return f"<Autor(id={self.id}, ime='{self.ime}', prezime='{self.prezime}')>"
 
 
 class Knjiga(Base):
     __tablename__ = "knjige"
 
-    id = Column(Integer, primary_key=True, index=True)
-    naslov = Column(String, index=True)
-    isbn = Column(String, unique=True, index=True)
-    godina_izdanja = Column(Integer)
-    dostupna = Column(Boolean, default=True)
+    # --- Kolone ---
+    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    naslov: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
+    isbn: Mapped[str] = mapped_column(String(30), unique=True, index=True, nullable=False)
+    godina_izdanja: Mapped[int] = mapped_column(Integer, nullable=False)
+    dostupna: Mapped[bool] = mapped_column(Boolean, default=True)
 
-    autor_id = Column(Integer, ForeignKey("autori.id"))
-    autor = relationship("Autor", back_populates="knjige")
+    # --- Relacija ka autoru ---
+    autor_id: Mapped[int] = mapped_column(ForeignKey("autori.id", ondelete="CASCADE"))
+    autor: Mapped[Optional[Autor]] = relationship(back_populates="knjige", lazy="joined")
+
+    def __repr__(self) -> str:
+        return f"<Knjiga(id={self.id}, naslov='{self.naslov}', isbn='{self.isbn}')>"

@@ -1,15 +1,22 @@
-
-import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
-load_dotenv()  # učitava .env fajl
-
-DATABASE_URL = os.getenv("DATABASE_URL")  # čita iz .env
+SQLALCHEMY_DATABASE_URL = "sqlite:///./biblioteka.db"
 
 engine = create_engine(
-    DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+SessionLocal: sessionmaker[Session] = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine
+)
+
 Base = declarative_base()
+
+# Dependency za FastAPI rute
+def get_db():
+    db: Session = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
