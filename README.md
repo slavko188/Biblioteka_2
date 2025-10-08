@@ -2,7 +2,7 @@
  ## Backend
  ## Python,FastApi,Pydantic,SQLAlchemy(Python biblioteka za rad sa bazama,ORM),SQLite.
  
- #Client
+ ## Client
  ## Vite-React
  ## Redux
  ## Axios
