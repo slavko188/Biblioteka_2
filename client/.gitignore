@@ -16,7 +16,7 @@ client/dist-ssr/
 *.local
 
 # Editor / OS
-.vscode/*
+.vscode/
 !.vscode/extensions.json
 .idea/
 .DS_Store
@@ -31,3 +31,4 @@ __pycache__/
 *.pyc
 venv/
 backend/venv/
+backend/biblioteka.db

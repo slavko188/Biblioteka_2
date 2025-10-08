@@ -1,3 +1,6 @@
 .env
-
-
+venv/
+biblioteka.db/
+__pycache__/
+.idea
+*.pyc
