@@ -1,6 +1,40 @@
-.env
-venv/
-biblioteka.db/
+# === Python fajlovi i keš ===
 __pycache__/
-.idea
-*.pyc
+*.py[cod]
+*$py.class
+
+# === Virtuelno okruženje ===
+venv/
+.venv/
+
+# === Environment fajlovi ===
+.env
+*.env
+
+# === Baze podataka ===
+*.db
+*.sqlite3
+
+# === Logovi ===
+*.log
+
+# === VS Code i IDE fajlovi ===
+.vscode/
+.idea/
+
+# === Build, distribucija i test artefakti ===
+build/
+dist/
+*.egg-info/
+.eggs/
+.coverage
+htmlcov/
+*.spec
+
+# === Sistemski fajlovi ===
+.DS_Store
+Thumbs.db
+
+# === Docker i kontejner fajlovi ===
+*.pid
+*.tar
